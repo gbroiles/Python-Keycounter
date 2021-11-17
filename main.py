@@ -25,9 +25,10 @@ class Keylogger:
         except KeyError:
             print("Must set counter_password enviroment variable.")
             sys.exit(1)
+        print("Got environment variables", flush=True)
 
     def send_mail(self, email, password, msg):
-        # You can change your smtp server if you use a different mail
+        print("Getting ready to send email report.",flush=True)
         try:
             server = smtplib.SMTP('smtp.gmail.com', 587)
             server.ehlo()
@@ -38,17 +39,17 @@ class Keylogger:
             print('An error occurred: ', e)
         finally:
             server.quit()
+        print("Email report sent.",flush=True)
 
     def report(self):
         log_date = datetime.datetime.now()
         msg = f'Subject: Log info {log_date}\n\nKeystrokes: {self.count}\n'
         self.send_mail(self.email, self.password, msg)
         self.count = 0
-#        timer = Timer(interval=60*60*24, function=self.report)
-        now = datetime.now()
+        now = datetime.datetime.now()
         seconds_left = (24 * 60 - (now.hour * 60 + now.minute)) * 60
-
         timer = Timer(interval=seconds_left+1, function=self.report)
+        print(f'Sleeping for {seconds_left} seconds.', flush=True)
         timer.daemon = True
         timer.start()
 
